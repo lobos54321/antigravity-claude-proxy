@@ -83,7 +83,7 @@ window.DashboardStats.updateStats = function(component) {
          const limits = Object.entries(acc.limits || {});
          limits.forEach(([id, l]) => {
              totalTrackedModels++;
-             if (!l || l.remainingFraction <= 0.05) {
+             if (!l || l.remainingFraction == null || l.remainingFraction <= 0.05) {
                  totalLimitedModels++;
              }
          });
