@@ -186,17 +186,47 @@
                             </div>
                         </td>
                         <td>
-                            <div class="flex flex-col gap-1 pr-4">
+                            <div class="flex flex-col pr-4"
+                                 :class="$store.settings.compact ? 'gap-0.5' : 'gap-1'">
                                 <div class="flex justify-between text-xs font-mono">
-                                    <span x-text="row.avgQuota + '%'"
-                                        :class="row.avgQuota > 0 ? 'text-white' : 'text-red-500'"></span>
-                                    <!-- Available/Total Accounts Indicator -->
-                                    <span class="text-gray-500 text-[10px]"
-                                          x-text="row.quotaInfo.filter(q => q.pct > 0).length + '/' + row.quotaInfo.length"></span>
+                                    <span class="flex items-center gap-1.5">
+                                        <span x-text="row.avgQuota + '%'"
+                                            :class="row.avgQuota > 0 ? 'text-white' : 'text-red-500'"></span>
+                                        <!-- Threshold indicator (inline) -->
+                                        <span x-show="row.effectiveThresholdPct > 0"
+                                              class="text-[10px] text-gray-500"
+                                              x-text="row.hasVariedThresholds
+                                                  ? '· min ' + Math.min(...row.quotaInfo.map(q => q.thresholdPct).filter(t => t > 0)) + '–' + row.effectiveThresholdPct + '%'
+                                                  : '· min ' + row.effectiveThresholdPct + '%'"></span>
+                                        <!-- Inline reset time (compact only) -->
+                                        <span x-show="$store.settings.compact && row.resetIn && row.resetIn !== '-'"
+                                              class="text-[10px]"
+                                              :class="(row.resetIn && row.resetIn.indexOf('h') === -1) ? 'text-neon-purple' : 'text-gray-500'"
+                                              x-text="'· ' + row.resetIn"></span>
+                                    </span>
+                                    <span class="flex items-center gap-2">
+                                        <!-- Compact: inline account squares -->
+                                        <span x-show="$store.settings.compact && row.quotaInfo && row.quotaInfo.length > 0"
+                                              class="inline-flex gap-0.5 items-center">
+                                            <template x-for="q in row.quotaInfo.slice(0, 8)" :key="q.fullEmail + '-sq'">
+                                                <span class="w-1.5 h-1.5 rounded-sm inline-block"
+                                                      :class="q.pct > 50 ? 'bg-neon-green/80' : (q.pct > 0 ? 'bg-yellow-500/80' : 'bg-red-900/60')"></span>
+                                            </template>
+                                            <span x-show="row.quotaInfo.length > 8"
+                                                  class="text-[8px] text-gray-600 leading-none"
+                                                  x-text="'+' + (row.quotaInfo.length - 8)"></span>
+                                        </span>
+                                        <!-- Available/Total Accounts Indicator -->
+                                        <span class="text-gray-500 text-[10px]"
+                                              x-text="row.quotaInfo.filter(q => q.pct > 0).length + '/' + row.quotaInfo.length"></span>
+                                    </span>
                                 </div>
                                 <div class="relative">
-                                    <progress class="progress w-full h-1.5 bg-space-800"
-                                        :class="row.avgQuota > 50 ? 'progress-gradient-success' : (row.avgQuota > 0 ? 'progress-gradient-warning' : 'progress-gradient-error')"
+                                    <progress class="progress w-full bg-space-800"
+                                        :class="[
+                                            $store.settings.compact ? 'h-1' : 'h-1.5',
+                                            row.avgQuota > 50 ? 'progress-gradient-success' : (row.avgQuota > 0 ? 'progress-gradient-warning' : 'progress-gradient-error')
+                                        ]"
                                         :value="row.avgQuota" max="100"></progress>
                                     <!-- Per-account draggable quota threshold markers -->
                                     <template x-for="(q, qIdx) in row.quotaInfo.filter(q => q.thresholdPct > 0 || isDragging(q, row))" :key="q.fullEmail + '-threshold'">
