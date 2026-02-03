@@ -8,11 +8,11 @@ COPY package*.json ./
 # Install ALL dependencies
 RUN npm ci
 
-# Build CSS explicitly after install
-RUN npm run build:css
-
 # Copy source
 COPY . .
+
+# Build CSS explicitly after copy (so source files exist)
+RUN npm run build:css
 
 # Copy start script
 COPY start.sh /start.sh
