@@ -5,8 +5,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (needed for build scripts like tailwindcss)
+# Install ALL dependencies
 RUN npm ci
+
+# Build CSS explicitly after install
+RUN npm run build:css
 
 # Copy source
 COPY . .
