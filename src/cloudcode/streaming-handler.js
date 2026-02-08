@@ -544,6 +544,15 @@ export async function* sendMessageStream(anthropicRequest, accountManager, fallb
                 continue;
             }
 
+            // Handle 403 "Gemini has been disabled" - account-level ban, apply long cooldown and switch
+            if (error.message.includes('PERMISSION_DENIED') || error.message.includes('has been disabled')) {
+                const PERMISSION_DENIED_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes - these are account bans, not transient
+                accountManager.notifyFailure(account, model);
+                accountManager.markRateLimited(account.email, PERMISSION_DENIED_COOLDOWN_MS, model);
+                logger.warn(`[CloudCode] Account ${account.email} has Gemini disabled (403 PERMISSION_DENIED), applying ${formatDuration(PERMISSION_DENIED_COOLDOWN_MS)} cooldown and trying next account...`);
+                continue;
+            }
+
             if (isNetworkError(error)) {
                 accountManager.notifyFailure(account, model);
 
